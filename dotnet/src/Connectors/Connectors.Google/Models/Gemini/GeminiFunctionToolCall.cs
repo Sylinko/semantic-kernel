@@ -15,12 +15,14 @@ public sealed class GeminiFunctionToolCall
 {
     private string? _fullyQualifiedFunctionName;
 
-    /// <summary>Initialize the <see cref="GeminiFunctionToolCall"/> from a <see cref="GeminiPart.FunctionCallPart"/>.</summary>
-    internal GeminiFunctionToolCall(GeminiPart.FunctionCallPart functionToolCall)
+    /// <summary>Initialize the <see cref="GeminiFunctionToolCall"/> from a <see cref="GeminiPart"/>.</summary>
+    internal GeminiFunctionToolCall(GeminiPart part)
     {
-        Verify.NotNull(functionToolCall);
-        Verify.NotNull(functionToolCall.FunctionName);
+        Verify.NotNull(part);
+        Verify.NotNull(part.FunctionCall);
+        Verify.NotNull(part.FunctionCall.FunctionName);
 
+        var functionToolCall = part.FunctionCall;
         string fullyQualifiedFunctionName = functionToolCall.FunctionName;
         string functionName = fullyQualifiedFunctionName;
         string? pluginName = null;
@@ -35,6 +37,7 @@ public sealed class GeminiFunctionToolCall
         this._fullyQualifiedFunctionName = fullyQualifiedFunctionName;
         this.PluginName = pluginName;
         this.FunctionName = functionName;
+        this.ThoughtSignature = part.ThoughtSignature;
         if (functionToolCall.Arguments is not null)
         {
             this.Arguments = functionToolCall.Arguments.Deserialize<Dictionary<string, object?>>();
@@ -49,6 +52,13 @@ public sealed class GeminiFunctionToolCall
 
     /// <summary>Gets a name/value collection of the arguments to the function, if any.</summary>
     public IReadOnlyDictionary<string, object?>? Arguments { get; }
+
+    /// <summary>Gets the thought signature for Gemini 3+ models.</summary>
+    /// <remarks>
+    /// This field is required for multi-turn function calling to work correctly with Gemini 3+ models.
+    /// The thought signature must be preserved and passed back in subsequent requests.
+    /// </remarks>
+    public string? ThoughtSignature { get; }
 
     /// <summary>Gets the fully-qualified name of the function.</summary>
     /// <remarks>

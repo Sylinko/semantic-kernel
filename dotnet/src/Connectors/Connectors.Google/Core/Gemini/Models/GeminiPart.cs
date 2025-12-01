@@ -48,6 +48,15 @@ internal sealed class GeminiPart : IJsonOnDeserialized
     public FunctionResponsePart? FunctionResponse { get; set; }
 
     /// <summary>
+    /// The thought signature for Gemini 3+ models with extended thinking.
+    /// This field is at the part level, alongside functionCall, not inside it.
+    /// Required for multi-turn function calling to work correctly.
+    /// </summary>
+    [JsonPropertyName("thoughtSignature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ThoughtSignature { get; set; }
+
+    /// <summary>
     /// Checks whether only one property of the GeminiPart instance is not null.
     /// Returns true if only one property among Text, InlineData, FileData, FunctionCall, and FunctionResponse is not null,
     /// Otherwise, it returns false.

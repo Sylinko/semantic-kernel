@@ -75,10 +75,23 @@ public sealed class GeminiStreamingChatMessageContent : StreamingChatMessageCont
                     ? System.Text.Json.JsonSerializer.Serialize(toolCall.Arguments)
                     : null;
 
+                // Create metadata dictionary with thoughtSignature if present
+                IReadOnlyDictionary<string, object?>? functionCallMetadata = null;
+                if (toolCall.ThoughtSignature is not null)
+                {
+                    functionCallMetadata = new Dictionary<string, object?>
+                    {
+                        ["thoughtSignature"] = toolCall.ThoughtSignature
+                    };
+                }
+
                 this.Items.Add(new StreamingFunctionCallUpdateContent(
                     callId: toolCall.FullyQualifiedName,
                     name: toolCall.FullyQualifiedName,
-                    arguments: arguments));
+                    arguments: arguments)
+                {
+                    Metadata = functionCallMetadata
+                });
             }
         }
     }

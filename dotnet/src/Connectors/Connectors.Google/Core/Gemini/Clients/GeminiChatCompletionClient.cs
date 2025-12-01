@@ -743,7 +743,7 @@ internal sealed class GeminiChatCompletionClient : ClientBase
 
     private List<GeminiChatMessageContent> GetChatMessageContentsFromResponse(GeminiResponse geminiResponse)
         => geminiResponse.Candidates == null ?
-            [new GeminiChatMessageContent(role: AuthorRole.Assistant, content: string.Empty, modelId: this._modelId, functionsToolCalls: null)]
+            [new GeminiChatMessageContent(role: AuthorRole.Assistant, content: string.Empty, modelId: this._modelId, functionCallParts: null)]
             : geminiResponse.Candidates.Select(candidate => this.GetChatMessageContentFromCandidate(geminiResponse, candidate)).ToList();
 
     private GeminiChatMessageContent GetChatMessageContentFromCandidate(GeminiResponse geminiResponse, GeminiResponseCandidate candidate)
@@ -752,15 +752,14 @@ internal sealed class GeminiChatCompletionClient : ClientBase
         string text = string.Concat(candidate.Content?.Parts?.Select(part => part.Text) ?? []);
 
         // Gemini sometimes returns function calls with text parts, so collect them
-        var toolCalls = candidate.Content?.Parts?
-            .Select(part => part.FunctionCall!)
-            .Where(toolCall => toolCall is not null).ToArray();
+        var functionCallParts = candidate.Content?.Parts?
+            .Where(part => part.FunctionCall is not null).ToArray();
 
         return new GeminiChatMessageContent(
             role: candidate.Content?.Role ?? AuthorRole.Assistant,
             content: text,
             modelId: this._modelId,
-            functionsToolCalls: toolCalls,
+            functionCallParts: functionCallParts,
             metadata: GetResponseMetadata(geminiResponse, candidate));
     }
 

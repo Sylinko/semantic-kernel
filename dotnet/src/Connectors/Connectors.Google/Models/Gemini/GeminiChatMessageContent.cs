@@ -114,13 +114,13 @@ public sealed class GeminiChatMessageContent : ChatMessageContent
     /// <param name="role">Role of the author of the message</param>
     /// <param name="content">Content of the message</param>
     /// <param name="modelId">The model ID used to generate the content</param>
-    /// <param name="functionsToolCalls">Tool calls parts returned by model</param>
+    /// <param name="functionCallParts">Parts containing function calls returned by model</param>
     /// <param name="metadata">Additional metadata</param>
     internal GeminiChatMessageContent(
         AuthorRole role,
         string? content,
         string modelId,
-        IEnumerable<GeminiPart.FunctionCallPart>? functionsToolCalls,
+        IEnumerable<GeminiPart>? functionCallParts,
         GeminiMetadata? metadata = null)
         : base(
             role: role,
@@ -130,7 +130,7 @@ public sealed class GeminiChatMessageContent : ChatMessageContent
             encoding: Encoding.UTF8,
             metadata: metadata)
     {
-        this.ToolCalls = functionsToolCalls?.Select(tool => new GeminiFunctionToolCall(tool)).ToList();
+        this.ToolCalls = functionCallParts?.Select(part => new GeminiFunctionToolCall(part)).ToList();
 
         // Add FunctionCallContent items for each tool call for standard SK processing
         if (this.ToolCalls is { Count: > 0 })
@@ -147,11 +147,25 @@ public sealed class GeminiChatMessageContent : ChatMessageContent
                     }
                 }
 
+                // Create metadata dictionary with thoughtSignature if present
+                Dictionary<string, object?>? functionCallMetadata = null;
+                if (toolCall.ThoughtSignature is not null)
+                {
+                    functionCallMetadata = new Dictionary<string, object?>
+                    {
+                        ["thoughtSignature"] = toolCall.ThoughtSignature
+                    };
+                }
+
                 this.Items.Add(new FunctionCallContent(
                     functionName: toolCall.FunctionName,
                     pluginName: toolCall.PluginName,
                     id: toolCall.FullyQualifiedName,
-                    arguments: arguments));
+                    arguments: arguments)
+                    {
+                        Metadata = functionCallMetadata
+                    }
+                );
             }
         }
     }

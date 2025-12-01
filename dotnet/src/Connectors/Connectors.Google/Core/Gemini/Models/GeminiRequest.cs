@@ -203,7 +203,8 @@ internal sealed class GeminiRequest
                         {
                             FunctionName = toolCall.FullyQualifiedName,
                             Arguments = JsonSerializer.SerializeToNode(toolCall.Arguments),
-                        }
+                        },
+                        ThoughtSignature = toolCall.ThoughtSignature
                     }));
                 break;
             default:
@@ -232,6 +233,11 @@ internal sealed class GeminiRequest
 
     private static GeminiPart CreateGeminiPartFromFunctionCall(FunctionCallContent functionCallContent)
     {
+        string? thoughtSignature = null;
+        if (functionCallContent.Metadata?.TryGetValue("thoughtSignature", out var signature) is true && signature is string signatureStr)
+        {
+            thoughtSignature = signatureStr;
+        }
         return new GeminiPart
         {
             FunctionCall = new GeminiPart.FunctionCallPart
@@ -242,7 +248,8 @@ internal sealed class GeminiRequest
                 Arguments = functionCallContent.Arguments is not null
                     ? JsonSerializer.SerializeToNode(functionCallContent.Arguments)
                     : null
-            }
+            },
+            ThoughtSignature = thoughtSignature
         };
     }
 
