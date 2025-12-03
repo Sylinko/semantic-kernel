@@ -15,7 +15,7 @@ public sealed class RequiredFunctionChoiceBehavior : FunctionChoiceBehavior
     /// <summary>
     /// Indicates whether the functions should be automatically invoked by AI connectors.
     /// </summary>
-    public bool AutoInvoke { get; } = true;
+    internal readonly bool AutoInvoke = true;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RequiredFunctionChoiceBehavior"/> class.
